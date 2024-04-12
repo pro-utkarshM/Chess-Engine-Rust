@@ -2,7 +2,24 @@
 name = "chess-engine"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+keywords = ["chess", "engine", "game", "board", "ai"]
+categories = [
+    "games",
+    "no-std",
+    "game-engines",
+    "game-development",
+    "algorithms"
+]
 
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+path = "src/bin.rs"
+name = "chess"
+
+[[terminal]]
+name = "terminal"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
