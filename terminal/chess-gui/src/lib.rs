@@ -35,8 +35,35 @@ lazy_static! {
 const SQUARE_SIZE: u16 = 48;
 pub const AI_DEPTH: i32 = if cfg!(debug_assertions) {2} else {4};
 
+// impl core::fmt::Display for Piece {
+//     fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+//         write!(
+//             f,
+//             "{}",
+//             match self.get_color() {
+//                 Color::Black => match self {
+//                     Self::King(_, _) => "♔",
+//                     Self::Queen(_, _) => "♕",
+//                     Self::Rook(_, _) => "♖",
+//                     Self::Knight(_, _) => "♘",
+//                     Self::Bishop(_, _) => "♗",
+//                     Self::Pawn(_, _) => "♙",
+//                 },
+//                 Color::White => match self {
+//                     Self::King(_, _) => "♚",
+//                     Self::Queen(_, _) => "♛",
+//                     Self::Rook(_, _) => "♜",
+//                     Self::Knight(_, _) => "♞",
+//                     Self::Bishop(_, _) => "♝",
+//                     Self::Pawn(_, _) => "♟",
+//                 },
+//             }
+//         )
+//     }
+// }
+
 pub fn get_symbol(piece: &Piece) -> impl ToString {
-	match piece {
+    match piece {
 		Piece::King(_, _) => "K",
 		Piece::Queen(_, _) => "Q",
 		Piece::Rook(_, _) => "R",
@@ -44,7 +71,8 @@ pub fn get_symbol(piece: &Piece) -> impl ToString {
 		Piece::Knight(_, _) => "N",
 		Piece::Pawn(_, _) => "P",
 	}
-}
+
+    }
 
 pub fn best_move(board: &Board) -> Move {
     board.get_best_next_move(AI_DEPTH).0
