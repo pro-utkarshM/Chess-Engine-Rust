@@ -1,7 +1,7 @@
 use iced::{button, container, Container, Align, Length, HorizontalAlignment, VerticalAlignment, Background, Button, Row, Column, Element, Sandbox, Settings, Text};
 use rand::{thread_rng, seq::SliceRandom};
 use lazy_static::lazy_static;
-
+use std::fs;
 use std::sync::Mutex;
 use chess_engine::*;
 pub use chess_engine::Board;
@@ -62,17 +62,45 @@ pub const AI_DEPTH: i32 = if cfg!(debug_assertions) {2} else {4};
 //     }
 // }
 
-pub fn get_symbol(piece: &Piece) -> impl ToString {
-    match piece {
-		Piece::King(_, _) => "K",
-		Piece::Queen(_, _) => "Q",
-		Piece::Rook(_, _) => "R",
-		Piece::Bishop(_, _) => "B",
-		Piece::Knight(_, _) => "N",
-		Piece::Pawn(_, _) => "P",
-	}
+// pub fn get_symbol(piece: &Piece) -> impl ToString {
+//     match piece {
+// 		Piece::King(_, _) => "K",
+// 		Piece::Queen(_, _) => "Q",
+// 		Piece::Rook(_, _) => "R",
+// 		Piece::Bishop(_, _) => "B",
+// 		Piece::Knight(_, _) => "N",
+// 		Piece::Pawn(_, _) => "P",
+// 	}
 
+//     }
+
+
+pub fn get_symbol(piece: &Piece) -> String {
+    let piece_name = match piece {
+        Piece::King(_, _) => "king",
+        Piece::Queen(_, _) => "queen",
+        Piece::Rook(_, _) => "rook",
+        Piece::Bishop(_, _) => "bishop",
+        Piece::Knight(_, _) => "knight",
+        Piece::Pawn(_, _) => "pawn",
+    };
+
+    let piece_path = format!("/pieces/{}-{}.svg", piece_name, piece.get_color()); // Assuming piece representations are stored as SVG files
+
+    if let Ok(content) = fs::read_to_string(&piece_path) {
+        content.trim().to_string()
+    } else {
+        // Use default representation (letters) if piece representation file is not found
+        match piece {
+            Piece::King(_, _) => "K".to_string(),
+            Piece::Queen(_, _) => "Q".to_string(),
+            Piece::Rook(_, _) => "R".to_string(),
+            Piece::Bishop(_, _) => "B".to_string(),
+            Piece::Knight(_, _) => "N".to_string(),
+            Piece::Pawn(_, _) => "P".to_string(),
+        }
     }
+}
 
 pub fn best_move(board: &Board) -> Move {
     board.get_best_next_move(AI_DEPTH).0

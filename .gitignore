@@ -1,1 +1,5 @@
 /target
+/terminal/chess-gui/target
+/Cargo.lock
+/terminal/chess-gui/Cargo.lock
+
