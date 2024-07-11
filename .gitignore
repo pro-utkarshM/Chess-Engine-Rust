@@ -1,1 +1,4 @@
 /target
+/Cargo.lock
+/examples/gui/Cargo.lock
+/examples/gui/target

@@ -1,0 +1,18 @@
+[package]
+name = "gui"
+version = "0.1.0"
+authors = ["Utkarsh Maurya <projects.utkarshMaurya@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "best"
+path = "src/bins/best.rs"
+
+[dependencies]
+iced = "0.2"
+rand = "0.8"
+lazy_static = "1.4"
+chess-engine = { path = "../.." }
+image = "0.23"  # Add this line
+
