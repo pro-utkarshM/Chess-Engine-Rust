@@ -1,4 +1,28 @@
+# Ignoring the target directory for all cargo projects
 /target
-/Cargo.lock
-/examples/gui/Cargo.lock
-/examples/gui/target
+
+# Ignoring the target directory specifically for the gui example
+/examples/chess-gui/target
+
+# Ignoring any Cargo.lock files if you don't want to track them
+Cargo.lock
+/examples/chess-gui/Cargo.lock
+
+# Ignoring compiled binary files
+*.rs.bk
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Ignoring editor specific files
+*.swp
+*.swo
+*.DS_Store
+.idea
+.vscode
+*.bak
+*.tmp
+*.log
+*.out
+
