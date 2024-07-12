@@ -23,3 +23,10 @@ name = "terminal"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+iced = "0.3"
+iced_native = "0.3"
+iced_graphics = "0.3"
+rand = "0.8"
+lazy_static = "1.4"
+# chess_engine = { path = "../.." }
+
