@@ -13,6 +13,6 @@ path = "src/bins/best.rs"
 iced = "0.2"
 rand = "0.8"
 lazy_static = "1.4"
-chess-engine = { path = "../.." }
+chess_engine = { path = "../../Chess-Engine-Rust/chess_engine" }
 image = "0.23"  # Add this line
 
