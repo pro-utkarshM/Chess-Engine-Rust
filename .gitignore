@@ -1,6 +1,6 @@
 # Ignoring the target directory for all cargo projects
 /target
-
+/Cargo.lock
 # Ignoring the target directory specifically for the gui example
 /examples/chess-gui/target
 
