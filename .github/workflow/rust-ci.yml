@@ -13,7 +13,16 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
 
+    container:
+      image: ubuntu:22.04  # Specifies the Ubuntu image for the container
+      options: --user root  # Runs commands as root
+
     steps:
+      - name: Install dependencies
+        run: |
+          apt update
+          apt install -y curl git clang pkg-config libssl-dev
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
