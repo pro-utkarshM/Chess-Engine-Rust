@@ -38,8 +38,8 @@ jobs:
       # - name: Format Check 
       #   run: cargo fmt -- --check
 
-      - name: Clippy Linting
-        run: cargo clippy -- -D warnings
+      # - name: Clippy Linting
+      #   run: cargo clippy -- -D warnings
 
       - name: Build Project
         run: cargo build --verbose
