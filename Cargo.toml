@@ -1,3 +1,8 @@
+[workspace]
+members = [
+    "examples/chess-gui",
+]
+
 [package]
 name = "chess-engine"
 version = "0.1.0"
@@ -13,9 +18,8 @@ categories = [
 ]
 
 [[bin]]
-path = "src/bin.rs"
 name = "chess"
+path = "src/bin.rs"
 
-[[terminal]]
+[[example]]
 name = "terminal"
-

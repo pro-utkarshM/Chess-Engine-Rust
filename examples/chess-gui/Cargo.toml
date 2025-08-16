@@ -8,9 +8,8 @@ edition = "2021"
 name = "best"
 path = "src/bins/best.rs"
 
-
 [dependencies]
-iced = "0.2"
+iced = { version = "0.12.1", features = ["tokio"] }
 rand = "0.8"
 lazy_static = "1.4"
-chess-engine = { path = "../.." }
+chess-engine = { path = "../..", version = "0.1.0" }

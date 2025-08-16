@@ -1,5 +1,5 @@
-use chess_gui::{run, best_move, Board};
+use chess_gui::{run_gui, best_move, Board};
 
 fn main() -> iced::Result {
-    run(best_move, Board::default())
+    run_gui(best_move, Board::default())
 }

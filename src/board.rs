@@ -678,8 +678,8 @@ impl Board {
         }
     }
 
-    pub(crate) fn is_legal_move(&self, m: Move, player_color: Color) -> bool {
-        match m {
+pub fn is_legal_move(&self, m: Move, player_color: Color) -> bool {
+            match m {
             Move::KingSideCastle => self.can_kingside_castle(player_color),
             Move::QueenSideCastle => self.can_queenside_castle(player_color),
             Move::Piece(from, to) => match self.get_piece(from) {
