@@ -1,0 +1,10 @@
+# Ignore build artifacts
+target/
+
+# Ignore git history
+.git/
+
+# Ignore self
+.dockerignore
+Dockerfile
+run-docker.sh
