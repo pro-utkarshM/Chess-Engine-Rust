@@ -1,18 +1,39 @@
-use iced::widget::{button, container, text, Button, Column, Row};
+use iced::widget::{button, container, svg, text, Button, Column, Row, Svg};
 use iced::{
     executor, theme, Application, Command, Element, Length, Settings, Size, Subscription, Theme,
 };
 use rand::{seq::SliceRandom, thread_rng};
+use std::collections::HashMap;
 
 use chess_engine::*;
 pub use chess_engine::Board;
 use std::sync::Mutex;
 
+// --- Asset Loading ---
 lazy_static::lazy_static! {
+    // Load all SVG images into a HashMap when the program starts.
+    // This is efficient as we only read the files from disk once.
+    static ref PIECE_IMAGES: HashMap<String, svg::Handle> = {
+        let mut map = HashMap::new();
+        let pieces = ["pawn", "rook", "knight", "bishop", "queen", "king"];
+        let colors = [("w", chess_engine::Color::White), ("b", chess_engine::Color::Black)];
+
+        for piece_name in pieces {
+            for (color_char, color_enum) in colors {
+                let path = format!("assets/pieces/{}-{}.svg", piece_name, color_char);
+                let handle = svg::Handle::from_path(path);
+                // The key is a combination of piece name and color, e.g., "pawnWhite"
+                map.insert(format!("{}{:?}", piece_name, color_enum), handle);
+            }
+        }
+        map
+    };
+
     static ref GET_CPU_MOVE: Mutex<fn(&Board) -> Move> = Mutex::new(best_move);
     static ref STARTING_BOARD: Mutex<Board> = Mutex::new(Board::default());
 }
 
+// --- Constants and Global Functions ---
 const SQUARE_SIZE: f32 = 64.0;
 pub const AI_DEPTH: i32 = if cfg!(debug_assertions) { 2 } else { 4 };
 
@@ -32,18 +53,6 @@ pub fn run_gui(get_cpu_move: fn(&Board) -> Move, starting_board: Board) -> iced:
         },
         ..Settings::default()
     })
-}
-
-// --- Helper Functions ---
-pub fn get_symbol(piece: &Piece) -> &str {
-    match piece {
-        Piece::King(c, _) => if *c == chess_engine::Color::White { "♔" } else { "♚" },
-        Piece::Queen(c, _) => if *c == chess_engine::Color::White { "♕" } else { "♛" },
-        Piece::Rook(c, _) => if *c == chess_engine::Color::White { "♖" } else { "♜" },
-        Piece::Bishop(c, _) => if *c == chess_engine::Color::White { "♗" } else { "♝" },
-        Piece::Knight(c, _) => if *c == chess_engine::Color::White { "♘" } else { "♞" },
-        Piece::Pawn(c, _) => if *c == chess_engine::Color::White { "♙" } else { "♟" },
-    }
 }
 
 pub fn best_move(board: &Board) -> Move {
@@ -118,7 +127,7 @@ impl Application for GameUI {
                 match self.from_square {
                     None => {
                         if self.board.has_ally_piece(pos, self.board.get_turn_color()) {
-                             self.from_square = Some(pos);
+                            self.from_square = Some(pos);
                         }
                     }
                     Some(from) => {
@@ -147,13 +156,18 @@ impl Application for GameUI {
                                 }
                             }
                         } else {
-                            self.from_square = if self.board.has_ally_piece(pos, self.board.get_turn_color()) { Some(pos) } else { None };
+                            self.from_square =
+                                if self.board.has_ally_piece(pos, self.board.get_turn_color()) {
+                                    Some(pos)
+                                } else {
+                                    None
+                                };
                         }
                     }
                 }
             }
             Message::CpuMove(cpu_move) => {
-                 if let Some(captured) = self.board.get_piece(cpu_move_target(cpu_move)) {
+                if let Some(captured) = self.board.get_piece(cpu_move_target(cpu_move)) {
                     match captured.get_color() {
                         chess_engine::Color::White => self.captured_white.push(captured),
                         chess_engine::Color::Black => self.captured_black.push(captured),
@@ -170,11 +184,11 @@ impl Application for GameUI {
                 }
             }
             Message::NewGame => {
-                 self.board = *STARTING_BOARD.lock().unwrap();
-                 self.from_square = None;
-                 self.game_over_message = None;
-                 self.captured_black.clear();
-                 self.captured_white.clear();
+                self.board = *STARTING_BOARD.lock().unwrap();
+                self.from_square = None;
+                self.game_over_message = None;
+                self.captured_black.clear();
+                self.captured_white.clear();
             }
         }
         Command::none()
@@ -199,10 +213,14 @@ impl Application for GameUI {
                     SquareStyle::Dark
                 };
 
-                let content = if let Some(p) = piece {
-                    text(get_symbol(&p)).size(48)
+                let content: Element<_> = if let Some(p) = piece {
+                    if let Some(handle) = self.get_image_handle(&p) {
+                        Svg::new(handle.clone()).width(Length::Fill).height(Length::Fill).into()
+                    } else {
+                        text("?").size(48).into()
+                    }
                 } else {
-                    text(" ").size(48)
+                    container(text("")).width(Length::Fill).height(Length::Fill).into()
                 };
 
                 row.push(
@@ -216,8 +234,8 @@ impl Application for GameUI {
             col.push(row)
         });
 
-        let captured_white_text = self.captured_white.iter().map(get_symbol).collect::<String>();
-        let captured_black_text = self.captured_black.iter().map(get_symbol).collect::<String>();
+        let captured_white_text: String = self.captured_white.iter().map(|p| self.get_symbol(p)).collect();
+        let captured_black_text: String = self.captured_black.iter().map(|p| self.get_symbol(p)).collect();
 
         let mut info_panel = Column::new()
             .padding(10)
@@ -226,11 +244,11 @@ impl Application for GameUI {
             .push(text(format!("Turn: {}", self.board.get_turn_color())).size(24))
             .push(text(format!("Captured (Black):\n{}", captured_white_text)).size(16))
             .push(text(format!("Captured (White):\n{}", captured_black_text)).size(16));
-        
+
         if self.game_over_message.is_some() {
             info_panel = info_panel.push(Button::new(text("New Game")).on_press(Message::NewGame));
-             if let Some(msg) = &self.game_over_message {
-                 info_panel = info_panel.push(text(msg).size(24));
+            if let Some(msg) = &self.game_over_message {
+                info_panel = info_panel.push(text(msg).size(24));
             }
         }
 
@@ -253,18 +271,21 @@ impl Application for GameUI {
     }
 }
 
+// --- Helper functions for game logic ---
 fn determine_move(from: Position, to: Position, color: chess_engine::Color, board: &Board) -> Move {
     if let Some(Piece::King(..)) = board.get_piece(from) {
         if (from.get_col() - to.get_col()).abs() == 2 {
-            if to.get_col() > from.get_col() {
-                return Move::KingSideCastle;
+            return if to.get_col() > from.get_col() {
+                Move::KingSideCastle
             } else {
-                return Move::QueenSideCastle;
-            }
+                Move::QueenSideCastle
+            };
         }
     }
-     if let Some(Piece::Pawn(..)) = board.get_piece(from) {
-        if (color == chess_engine::Color::White && to.get_row() == 7) || (color == chess_engine::Color::Black && to.get_row() == 0) {
+    if let Some(Piece::Pawn(..)) = board.get_piece(from) {
+        if (color == chess_engine::Color::White && to.get_row() == 7)
+            || (color == chess_engine::Color::Black && to.get_row() == 0)
+        {
             return Move::Promotion(from, to, Piece::Queen(color, to));
         }
     }
@@ -281,11 +302,27 @@ fn cpu_move_target(m: Move) -> Position {
 impl GameUI {
     fn handle_game_over(&mut self, result: GameResult) {
         self.game_over_message = Some(match result {
-             GameResult::Victory(winner) => format!("{} wins!", winner),
-             GameResult::Stalemate => "Stalemate!".to_string(),
-             GameResult::IllegalMove(_) => "Illegal Move!".to_string(),
-             GameResult::Continuing(_) => unreachable!(),
+            GameResult::Victory(winner) => format!("{} wins!", winner),
+            GameResult::Stalemate => "Stalemate!".to_string(),
+            GameResult::IllegalMove(_) => "Illegal Move!".to_string(),
+            GameResult::Continuing(_) => unreachable!(),
         });
+    }
+
+    fn get_symbol<'a>(&self, piece: &'a Piece) -> &'static str {
+        match piece {
+            Piece::King(c, _) => if *c == chess_engine::Color::White { "♔" } else { "♚" },
+            Piece::Queen(c, _) => if *c == chess_engine::Color::White { "♕" } else { "♛" },
+            Piece::Rook(c, _) => if *c == chess_engine::Color::White { "♖" } else { "♜" },
+            Piece::Bishop(c, _) => if *c == chess_engine::Color::White { "♗" } else { "♝" },
+            Piece::Knight(c, _) => if *c == chess_engine::Color::White { "♘" } else { "♞" },
+            Piece::Pawn(c, _) => if *c == chess_engine::Color::White { "♙" } else { "♟" },
+        }
+    }
+
+    fn get_image_handle(&self, piece: &Piece) -> Option<&'static svg::Handle> {
+        let key = format!("{}{:?}", piece.get_name(), piece.get_color());
+        PIECE_IMAGES.get(&key)
     }
 }
 
@@ -309,10 +346,10 @@ impl button::StyleSheet for SquareStyle {
             })),
             border: iced::Border {
                 radius: 0.0.into(),
-                ..iced::Border::default()
+                ..Default::default()
             },
             text_color: iced::Color::BLACK,
-            ..button::Appearance::default()
+            ..Default::default()
         }
     }
 
@@ -326,7 +363,7 @@ impl button::StyleSheet for SquareStyle {
 }
 
 impl From<SquareStyle> for theme::Button {
-     fn from(style: SquareStyle) -> Self {
-         theme::Button::Custom(Box::new(style))
-     }
+    fn from(style: SquareStyle) -> Self {
+        theme::Button::Custom(Box::new(style))
+    }
 }
